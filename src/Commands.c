@@ -32,6 +32,45 @@ void Commands_Register(struct ChatCommand* cmd) {
 /*########################################################################################################################*
 *------------------------------------------------------Command handling---------------------------------------------------*
 *#########################################################################################################################*/
+void DrawSphere(IVector3 center, int r, BlockID block) {
+    for (int y = -r; y <= r; y++) {
+        for (int z = -r; z <= r; z++) {
+            for (int x = -r; x <= r; x++) {
+                if (x*x + y*y + z*z <= r*r) {
+                    World_SetBlock(center.X + x, center.Y + y, center.Z + z, block);
+                }
+            }
+        }
+    }
+}
+
+void DrawCircle(IVector3 center, int r, BlockID block) {
+    for (int z = -r; z <= r; z++) {
+        for (int x = -r; x <= r; x++) {
+            if (x*x + z*z <= r*r) {
+                World_SetBlock(center.X + x, center.Y, center.Z + z, block);
+            }
+        }
+    }
+}
+
+void DrawSquare(IVector3 center, int size, BlockID block) {
+    for (int z = -size; z <= size; z++) {
+        for (int x = -size; x <= size; x++) {
+            World_SetBlock(center.X + x, center.Y, center.Z + z, block);
+        }
+    }
+}
+
+void DrawTriangle(IVector3 center, int height, BlockID block) {
+    for (int y = 0; y < height; y++) {
+        int width = height - y;
+        for (int x = -width; x <= width; x++) {
+            World_SetBlock(center.X + x, center.Y + y, center.Z, block);
+        }
+    }
+}
+
 static struct ChatCommand* Commands_FindMatch(const cc_string* cmdName) {
 	struct ChatCommand* match = NULL;
 	struct ChatCommand* cmd;
@@ -138,6 +177,61 @@ cc_bool Commands_Execute(const cc_string* input) {
 /*########################################################################################################################*
 *------------------------------------------------------Simple commands----------------------------------------------------*
 *#########################################################################################################################*/
+static void DrawCommand_Execute(const cc_string* args, int argsCount) {
+    if (argsCount < 1) {
+        Chat_AddRaw("&eUsage: /draw <type> [radius/size] [block]");
+        Chat_AddRaw("&7Types: triangle, sphere, circle, square");
+        return;
+    }
+
+    cc_string type = args[0];
+    int size = (argsCount > 1) ? String_ToInt(&args[1]) : 5;
+    BlockID block = (argsCount > 2) ? (BlockID)Block_Parse(&args[2]) : Block_Stone;
+
+    IVector3 origin;
+    IVector3_Floor(&origin, &LocalPlayer_Instance.Base.Position);
+
+    if (String_CaselessEqualsConst(&type, "sphere")) {
+        DrawSphere(origin, size, block);
+    } else if (String_CaselessEqualsConst(&type, "circle")) {
+        DrawCircle(origin, size, block);
+    } else if (String_CaselessEqualsConst(&type, "square")) {
+        DrawSquare(origin, size, block);
+    } else if (String_CaselessEqualsConst(&type, "triangle")) {
+        DrawTriangle(origin, size, block);
+    }
+}
+
+static void DrawCommand_Execute(const cc_string* args, int argsCount) {
+    if (argsCount < 1) {
+        Chat_AddRaw("&eUsage: /Draw [blockID]");
+        return;
+    }
+
+    // Get the block ID from the user argument
+    int block = Block_Parse(&args[0]);
+    if (block == -1) {
+        Chat_AddRaw("&cInvalid block ID.");
+        return;
+    }
+
+    /* This is a placeholder for where you'd trigger 
+       the client's position-picking state.
+    */
+    Chat_AddRaw("&aDrawing mode enabled. (Logic depends on your client hooks)");
+    
+    // Example: Directly changing a block at your current feet position
+    IVector3 pos;
+    IVector3_Floor(&pos, &LocalPlayer_Instance.Base.Position);
+    World_SetBlock(pos.X, pos.Y - 1, pos.Z, (BlockID)block);
+}
+
+static struct ChatCommand DrawCommand = {
+    "Draw", DrawCommand_Execute,
+    COMMAND_FLAG_SINGLEPLAYER_ONLY, // Or 0 if you want it on servers
+    { "Usage: /Draw [block]", "Places blocks relative to client." }
+};
+
 static void HelpCommand_Execute(const cc_string* args, int argsCount) {
 	struct ChatCommand* cmd;
 	int i;
@@ -820,3 +914,4 @@ struct IGameComponent Commands_Component = {
 	OnInit, /* Init  */
 	OnFree  /* Free  */
 };
+
