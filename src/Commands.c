@@ -32,7 +32,7 @@ void Commands_Register(struct ChatCommand* cmd) {
 /*########################################################################################################################*
 *------------------------------------------------------Command handling---------------------------------------------------*
 *#########################################################################################################################*/
-void DrawSphere(IVector3 center, int r, BlockID block) {
+void DrawSphere(IVec3 center, int r, BlockID block) {
     for (int y = -r; y <= r; y++) {
         for (int z = -r; z <= r; z++) {
             for (int x = -r; x <= r; x++) {
@@ -44,7 +44,7 @@ void DrawSphere(IVector3 center, int r, BlockID block) {
     }
 }
 
-void DrawCircle(IVector3 center, int r, BlockID block) {
+void DrawCircle(IVec3 center, int r, BlockID block) {
     for (int z = -r; z <= r; z++) {
         for (int x = -r; x <= r; x++) {
             if (x*x + z*z <= r*r) {
@@ -54,7 +54,7 @@ void DrawCircle(IVector3 center, int r, BlockID block) {
     }
 }
 
-void DrawSquare(IVector3 center, int size, BlockID block) {
+void DrawSquare(IVec3 center, int size, BlockID block) {
     for (int z = -size; z <= size; z++) {
         for (int x = -size; x <= size; x++) {
             World_SetBlock(center.X + x, center.Y, center.Z + z, block);
@@ -62,7 +62,7 @@ void DrawSquare(IVector3 center, int size, BlockID block) {
     }
 }
 
-void DrawTriangle(IVector3 center, int height, BlockID block) {
+void DrawTriangle(IVec3 center, int height, BlockID block) {
     for (int y = 0; y < height; y++) {
         int width = height - y;
         for (int x = -width; x <= width; x++) {
@@ -914,4 +914,5 @@ struct IGameComponent Commands_Component = {
 	OnInit, /* Init  */
 	OnFree  /* Free  */
 };
+
 
